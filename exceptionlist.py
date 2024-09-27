@@ -1,6 +1,7 @@
 import csv
 import re
 from datetime import datetime
+import argparse
 
 def is_valid_ip(ip):
     pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
@@ -117,17 +118,25 @@ def export_filtered_logs(filtered_logs, output_file):
                 log['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
             ])
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Tűzfal log szűrő')
+    parser.add_argument('-l', '--log', default='firewall_logs.csv',
+                        help='A tűzfal log fájl elérési útja (alapértelmezett: firewall_logs.csv)')
+    parser.add_argument('-e', '--exceptions', default='exceptions.csv',
+                        help='A kivételeket tartalmazó fájl elérési útja (alapértelmezett: exceptions.csv)')
+    parser.add_argument('-o', '--output', default='filtered_logs.csv',
+                        help='A kimeneti fájl elérési útja (alapértelmezett: filtered_logs.csv)')
+    return parser.parse_args()
+
 def main():
-    firewall_log_file = 'firewall_logs.csv'
-    exceptions_file = 'exceptions.csv'
-    output_file = 'filtered_logs.csv'
+    args = parse_arguments()
 
     try:
-        logs = read_firewall_logs(firewall_log_file)
-        exceptions = read_exceptions(exceptions_file)
+        logs = read_firewall_logs(args.log)
+        exceptions = read_exceptions(args.exceptions)
         filtered_logs = filter_logs(logs, exceptions)
-        export_filtered_logs(filtered_logs, output_file)
-        print(f"Szűrés befejezve. A szűrt logok exportálva: {output_file}")
+        export_filtered_logs(filtered_logs, args.output)
+        print(f"Szűrés befejezve. A szűrt logok exportálva: {args.output}")
     except ValueError as e:
         print(f"Hiba történt a fájlok feldolgozása során: {e}")
     except FileNotFoundError as e:
